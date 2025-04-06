@@ -132,16 +132,16 @@ def run_training_loop(params):
             # TODO: collect `params['batch_size']` transitions
             # HINT: use utils.sample_trajectories
             # TODO: implement missing parts of utils.sample_trajectory
-            paths, envsteps_this_batch = TODO
+            paths, envsteps_this_batch = utils.sample_trajectories(env, actor, params['batch_size'], params['ep_len'])
 
             # relabel the collected obs with actions from a provided expert policy
-            if params['do_dagger']:
-                print("\nRelabelling collected observations with labels from an expert policy...")
+            print("\nRelabelling collected observations with labels from an expert policy...")
 
-                # TODO: relabel collected obsevations (from our policy) with labels from expert policy
-                # HINT: query the policy (using the get_action function) with paths[i]["observation"]
-                # and replace paths[i]["action"] with these expert labels
-                paths = TODO
+            # TODO: relabel collected obsevations (from our policy) with labels from expert policy
+            # HINT: query the policy (using the get_action function) with paths[i]["observation"]
+            # and replace paths[i]["action"] with these expert labels
+            for i in range(len(paths)):
+                paths[i]['action'] = expert_policy.get_action(paths[i]['observation'])
 
         total_envsteps += envsteps_this_batch
         # add collected data to replay buffer
@@ -157,7 +157,9 @@ def run_training_loop(params):
           # HINT2: use np.random.permutation to sample random indices
           # HINT3: return corresponding data points from each array (i.e., not different indices from each array)
           # for imitation learning, we only need observations and actions.  
-          ob_batch, ac_batch = TODO
+          ids = np.random.permutation(len(replay_buffer.obs))
+          ob_batch, ac_batch = replay_buffer.obs[ids[:params['train_batch_size']]], replay_buffer.acs[ids[:params['train_batch_size']]]
+          ob_batch, ac_batch = ptu.from_numpy(ob_batch), ptu.from_numpy(ac_batch)
 
           # use the sampled data to train an agent
           train_log = actor.update(ob_batch, ac_batch)
